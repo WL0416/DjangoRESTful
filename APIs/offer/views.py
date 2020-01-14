@@ -1,47 +1,48 @@
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
-from .models import Offer
-from .serializers import OfferSerializer
+from rest_framework import status
+from rest_framework.decorators import APIView
+from rest_framework.response import Response
+from offer.models import Offer
+from offer.serializers import OfferSerializer
+from django.http import Http404
 
-@csrf_exempt
-def offer_list(request):
+class OfferList(APIView):
     """
     List all specific offers
     """
-    if request.method == 'GET':
+    def get(self, request, format=None):
         offers = Offer.objects.all()
         serializer = OfferSerializer(offers, many=True)
-        return JsonResponse(serializer.data, safe=False)
+        return Response(serializer.data)
     
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = OfferSerializer(data=data)
+    def post(self, request, format=None):
+        serializer = OfferSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@csrf_exempt
-def offer_manage(request, first_name):
-    try:
-        offer = Offer.objects.get(first_name=first_name)
-        print(offer)
-    except Offer.DoesNotExist:
-        return HttpResponse(status=404)
+
+class OfferManage(APIView):
+    def get_object(self, first_name):
+        try:
+            return Offer.objects.get(first_name=first_name)
+        except Offer.DoesNotExist:
+            return Http404
     
-    if request.method == 'GET':
+    def get(self, request, first_name, format=None):
+        offer = self.get_object(first_name)
         serializer = OfferSerializer(offer)
-        return JsonResponse(serializer.data)
+        return Response(serializer.data)
     
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = OfferSerializer(offer, data=data)
+    def put(self, request, first_name, format=None):
+        offer = self.get_object(first_name)
+        serializer = OfferSerializer(offer, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=400)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    elif request.method == 'DELETE':
+    def delete(self, request, first_name, format=None):
+        offer = self.get_object(first_name)
         offer.delete()
-        return HttpResponse(status=204)
+        return Response(status=status.HTTP_204_NO_CONTENT)

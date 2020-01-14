@@ -1,23 +1,47 @@
-from django.contrib.auth.models import User, Group
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.decorators import APIView
-from offer.serializers import UserSerializer, GroupSerializer
-from offer.models import Offer
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.parsers import JSONParser
+from .models import Offer
+from .serializers import OfferSerializer
 
-
-class UserViewSet(viewsets.ModelViewSet):
+@csrf_exempt
+def offer_list(request):
     """
-    API endpoint that allows users to be viewed or edited.
+    List all specific offers
     """
-    queryset = User.objects.all().order_by('-date_joined')
-    serializer_class = UserSerializer
-
-
-class GroupViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited.
-    """
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
+    if request.method == 'GET':
+        offers = Offer.objects.all()
+        serializer = OfferSerializer(offers, many=True)
+        return JsonResponse(serializer.data, safe=False)
     
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        serializer = OfferSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
+
+@csrf_exempt
+def offer_manage(request, first_name):
+    try:
+        offer = Offer.objects.get(first_name=first_name)
+        print(offer)
+    except Offer.DoesNotExist:
+        return HttpResponse(status=404)
+    
+    if request.method == 'GET':
+        serializer = OfferSerializer(offer)
+        return JsonResponse(serializer.data)
+    
+    elif request.method == 'PUT':
+        data = JSONParser().parse(request)
+        serializer = OfferSerializer(offer, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+    
+    elif request.method == 'DELETE':
+        offer.delete()
+        return HttpResponse(status=204)

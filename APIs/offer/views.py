@@ -13,14 +13,6 @@ class OfferList(APIView):
         offers = Offer.objects.all()
         serializer = OfferSerializer(offers, many=True)
         return Response(serializer.data)
-    
-    def post(self, request, format=None):
-        serializer = OfferSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class OfferManage(APIView):
     def get_object(self, first_name):
@@ -46,3 +38,12 @@ class OfferManage(APIView):
         offer = self.get_object(first_name)
         offer.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class GenerateOffer(APIView):
+     def post(self, request, format=None):
+        serializer = OfferSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

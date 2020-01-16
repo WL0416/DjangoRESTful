@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from offer.models import Offer
 from offer.serializers import OfferSerializer
 from django.http import Http404
+from docxtpl import DocxTemplate
+import os
 
 class OfferList(APIView):
     """
@@ -40,10 +42,21 @@ class OfferManage(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class GenerateOffer(APIView):
-     def post(self, request, format=None):
+
+    def post(self, request, format=None):
         serializer = OfferSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            # serializer.save()
+            name = request.data['first_name']
+            birthday = request.data['birthday'].replace("/","")
+            tpl = DocxTemplate('temp.docx')
+            tpl.render(request.data)
+            filename = 'offers/LOO-'+ name + '-' + birthday +'.docx'
+            tpl.save(filename)
             
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            filename = os.path.realpath(filename)
+            response = Response(serializer.data, status=status.HTTP_201_CREATED)
+            response["content_type"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            response["Content-Disposition"] = "attachment; filename={}".format(filename)
+            return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

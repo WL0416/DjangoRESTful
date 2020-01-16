@@ -6,6 +6,8 @@ from offer.serializers import OfferSerializer
 from django.http import Http404
 from docxtpl import DocxTemplate
 import os
+from wsgiref.util import FileWrapper
+from django.http import HttpResponse
 
 class OfferList(APIView):
     """
@@ -42,7 +44,6 @@ class OfferManage(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class GenerateOffer(APIView):
-
     def post(self, request, format=None):
         serializer = OfferSerializer(data=request.data)
         if serializer.is_valid():
@@ -55,8 +56,9 @@ class GenerateOffer(APIView):
             tpl.save(filename)
 
             filename = os.path.realpath(filename)
-            response = Response(serializer.data, status=status.HTTP_201_CREATED)
-            response["Content-Type"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            word_file = open(filename, 'rb')
+            # response = Response(serializer, status=status.HTTP_201_CREATED)
+            response = HttpResponse(FileWrapper(word_file), status=status.HTTP_201_CREATED, content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
             response["Content-Disposition"] = "attachment; filename={}".format(filename)
             return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -53,10 +53,10 @@ class GenerateOffer(APIView):
             tpl.render(request.data)
             filename = 'offers/LOO-'+ name + '-' + birthday +'.docx'
             tpl.save(filename)
-            
+
             filename = os.path.realpath(filename)
             response = Response(serializer.data, status=status.HTTP_201_CREATED)
-            response["content_type"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            response["Content-Type"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             response["Content-Disposition"] = "attachment; filename={}".format(filename)
             return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

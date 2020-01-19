@@ -8,6 +8,7 @@ from docxtpl import DocxTemplate
 import os
 from wsgiref.util import FileWrapper
 from django.http import HttpResponse
+from docx import Document
 
 class OfferList(APIView):
     """
@@ -45,20 +46,48 @@ class OfferManage(APIView):
 
 class GenerateOffer(APIView):
     def post(self, request, format=None):
-        serializer = OfferSerializer(data=request.data)
+
+        data = request.data
+        # parse courses
+        courses = ''
+        coursesList = data['courseList']
+        for i in range(len(coursesList)):
+            if i == 0:
+                courses += coursesList[i]['name']
+            else:
+                courses += coursesList[i]['name']
+
+        offerInfo = {
+            'first_name': data['first_name'],
+            'last_name': data['last_name'],
+            'birthday': data['birthday'],
+            'passport': data['passport'],
+            'phone': data['phone'],
+            'email': data['email'],
+            'address': data['address'],
+            'start_date': data['courseList'][0]['intake'],
+            'courses': courses,
+            'campus': 'Melbourne'
+        }
+
+        serializer = OfferSerializer(data=offerInfo)
         if serializer.is_valid():
             # serializer.save()
-            name = request.data['first_name']
-            birthday = request.data['birthday'].replace("/","")
+            name = offerInfo['first_name']
+            birthday = offerInfo['birthday'].replace("-","")
             tpl = DocxTemplate('temp.docx')
-            tpl.render(request.data)
-            filename = 'offers/LOO-'+ name + '-' + birthday +'.docx'
-            tpl.save(filename)
+            tpl.render(offerInfo)
+            filename = 'LOO-'+ name + '-' + birthday +'.docx'
+            filepath = 'offers/' + filename
+            tpl.save(filepath)
 
-            filename = os.path.realpath(filename)
-            word_file = open(filename, 'rb')
-            # response = Response(serializer, status=status.HTTP_201_CREATED)
+            filepath = os.path.realpath(filepath)
+            word_file = open(filepath, 'rb')
+            length = word_file.tell()
+            print(filepath)
             response = HttpResponse(FileWrapper(word_file), status=status.HTTP_201_CREATED, content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-            response["Content-Disposition"] = "attachment; filename={}".format(filename)
+            response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+            response['Content-Length'] = length
+            # response = Response(serializer.data, status=status.HTTP_201_CREATED)
             return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

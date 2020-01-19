@@ -25,7 +25,7 @@ SECRET_KEY = 'i2==t19+1*&&tjgn!!m0d5s79!eso8r(wu#8p7@9og(^porvoc'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.1.5']
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -43,11 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'offer.apps.OfferConfig',
     'rest_framework',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -75,6 +77,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'APIs.wsgi.application'
 
+# CORS configuration
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases

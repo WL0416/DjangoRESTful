@@ -6,7 +6,7 @@ class Offer(models.Model):
     birthday = models.CharField(max_length=10)
     passport = models.CharField(max_length=30)
     phone = models.CharField(max_length=30)
-    email = models.EmailField(max_length=50)
+    email = models.CharField(max_length=50)
     address = models.CharField(max_length=150)
     start_date = models.CharField(max_length=10)
     courses = models.CharField(max_length=20)

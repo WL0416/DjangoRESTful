@@ -25,7 +25,7 @@ SECRET_KEY = 'i2==t19+1*&&tjgn!!m0d5s79!eso8r(wu#8p7@9og(^porvoc'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.5']
+ALLOWED_HOSTS = ['192.168.1.5', 'localhost']
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -129,3 +129,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = '/xampp/htdocs/django/APIs/APIs/static'
